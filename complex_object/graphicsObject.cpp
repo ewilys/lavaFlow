@@ -69,7 +69,7 @@ int GraphicsObject::createVAO(Shader shader)
 int GraphicsObject::createVAO(Shader shader, Vertices vtx, Indices ind)
 {
 	int rc = 0;
-
+	Vertex v;
 	GLint location;		// location of the attributes in the shader;
 
 	//create vertex array object
@@ -98,6 +98,34 @@ int GraphicsObject::createVAO(Shader shader, Vertices vtx, Indices ind)
 	//}
 	glEnableVertexAttribArray(location);
 	glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, col));
+
+	/*
+	//set the vertex normal
+	location = glGetAttribLocation(shader.getProgId(), "vtxNormal");
+	if (location == -1) {
+		rc = -3;
+		//DN	goto err;
+	}
+	else {
+		glEnableVertexAttribArray(location);
+		glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	}
+	*/
+	//set the vertex tex coordinates
+	location = glGetAttribLocation(shader.getProgId(), "vtxCoord");
+	if (location == -1) {
+		rc = -3;
+		//DN	goto err;
+	}
+	else {
+		glEnableVertexAttribArray(location);
+		int relAddress = (char *)v.texCoord - (char *)&v;
+
+		glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)relAddress);
+
+		glEnableVertexAttribArray(location);
+		glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+	}
 
 	//create index buffer
 	glGenBuffers(1, &indVBO);

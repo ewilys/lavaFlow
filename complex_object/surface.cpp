@@ -159,6 +159,95 @@ int Surface::createSurface(int numRows, int numCols, Vertices &vtx, Indices &ind
 
 }
 
+
+/***************************************************************************************************************/
+/*
+// Function creates a Surface geometry
+
+input:
+numRows - number of rows in the surface
+numCols - number of columns in the surface
+u0, u1 - range of texture u coordinates
+v0, v1 - range of texture v coordinates
+
+
+*/
+
+int Surface::createSurface(int numRows, int numCols, float u0, float u1, float v0, float v1, Vertices &vtx, Indices &ind)
+
+{
+	int i, j;
+	int numVtx;
+	int numTriangles;
+	Vector4f pos;
+	Vector4f colour = Vector4f(0, 0, 0, 1);
+	Vector3f normal;
+	float x;
+	float z;
+	float deltaX;
+	float deltaZ;
+	float deltaU, deltaV;
+	float u, v;		// texture coordinates
+	Vector2f texCoord;
+
+
+	numVtx = (numRows + 1) * (numCols + 1);		// include the addtional vertices along the boundary of the surface
+	//vtx.resize(numVtx);
+	vtx.resize(0);
+	cout << "   the vector's size is: " << vtx.size() << endl;
+	cout << "   the vector's capacity is: " << vtx.capacity() << endl;
+	cout << "   the vector's maximum size is: " << vtx.max_size() << endl;
+
+
+	numTriangles = numRows * numCols * 2;
+	//ind.resize(numTriangles * 3);
+	ind.resize(0);
+
+	// Fill the vertex buffer with positions
+	deltaX = (float)(MAX_X_RANGE - MIN_X_RANGE) / numCols; // increment along the x-axis
+	deltaZ = (float)(MAX_Z_RANGE - MIN_Z_RANGE) / numRows; // increment along the y-axis
+
+	// texture coordinates deltas
+	deltaU = (u1 - u0) / numCols;
+	deltaV = (v1 - v0) / numRows;
+
+	normal = Vector3f(0, 1, 0);
+	for (i = 0, z = MIN_Z_RANGE, v = v0; i <= numRows; i++, z += deltaZ, v += deltaV) {
+		for (j = 0, x = MIN_X_RANGE, u = u0; j <= numCols; j++, x += deltaX, u += deltaU) {
+			pos.x = x;
+			pos.y = 0;
+			pos.z = z;
+			pos.w = 1.0;
+
+			texCoord.x = u;
+			texCoord.y = v;
+
+
+			// add colour 
+			colour.x = j * deltaX / 2.0f;
+			colour.z = i * deltaZ / 2.0f;
+			colour = Vector4f(0.5f, 0.3f, 0.2f, 1.0f);
+
+			normal.y = 1;
+
+			vtx.push_back(Vertex(pos, normal, colour, texCoord));
+
+
+		}
+	}
+
+	// fill the index buffer
+	for (i = 0; i < numRows; i++) {
+		for (j = 0; j < numCols; j++) {
+			createQuad(numRows, numCols, i, j, ind);
+		}
+	}
+
+	return(0);
+
+}
+
+
 /*******************************************************************************/
 // creates two triangoles indices of quad at position row, col
 

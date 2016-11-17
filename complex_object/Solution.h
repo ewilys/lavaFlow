@@ -45,6 +45,8 @@
 #include "surface.h"
 #include "cylinder.h"
 #include "camera.h"
+#include "Texture.h"
+#include "SkyBox.h"
 
 
 
@@ -76,11 +78,13 @@ public:
 
 	Shader shader;
 	Camera cam;
+	SkyBox skybox;
 	Surface testSurface;
 	Vector3f volcanoCenter;
 	int numFrames;
 	int factor;
 	static Solution *sol;
+	Texture volcanoTex;
 	
 
 	void render();

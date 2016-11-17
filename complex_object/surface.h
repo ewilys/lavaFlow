@@ -50,6 +50,7 @@ public:
 	Surface();
 	~Surface();
 	static int Surface::createSurface(int numRows, int numCols, Vertices &vtx, Indices &ind);
+	static int createSurface(int numRows, int numCols, float u0, float u1, float v0, float v1, Vertices &vtx, Indices &ind);
 	int render(Shader shader);
 
 private:

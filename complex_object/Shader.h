@@ -40,13 +40,10 @@
 
 
 #include "GL/glew.h"
-#include "GL/nuss_math.h"
+#include "GL/nuss_matrix.h"
 
-#if defined(__APPLE__)
-#include <GLUT/glut.h>
-#else
+
 #include "GL/glut.h"
-#endif
 
 #include "gl/gl.h"
 
@@ -65,7 +62,8 @@ public:
 	int printShaderStatus(void);
 	void useProgram(int useProg);
 	int copyMatrixToShader(const Matrix4f matrix, const char* name);
-	int copyFloatToShader(const float f, const char* name);
+	int copyFloatVectorToShader(float *v, int vectorSize, int elementSize, const char* name);
+	int copyIntVectorToShader(int *v, int vectorSize, int elementSize, const char* name);
 
 private:
 	GLuint vertShaderid;

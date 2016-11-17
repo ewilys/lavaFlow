@@ -68,11 +68,17 @@ int Solution::initOpenGL()
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(800, 400);
-	glutCreateWindow("Drawing Basic Objects");
+	glutCreateWindow("Lava Flow bis");
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
+	
+	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
+
 	glutDisplayFunc(Solution::renderCB);
 	glutReshapeFunc(Solution::winResizeCB);
 	glutKeyboardFunc(Solution::keyboardCB);
@@ -180,6 +186,15 @@ int Solution::initSolution()
 	Vertices vtx;
 	Indices ind;
 
+	char *sbTextureNameSunnyDay[6] = {
+		"TropicalSunnyDayLeft2048.png",
+		"TropicalSunnyDayRight2048.png",
+		"TropicalSunnyDayUp2048.png",
+		"TropicalSunnyDayDown2048.png",
+		"TropicalSunnyDayFront2048.png",
+		"TropicalSunnyDayBack2048.png" };
+
+
 	volcanoCenter = Vector3f(100, 0, 100);
 	Vector3f viewerPosition = Vector3f(140, 50, 140);
 	Vector3f lookAtPoint = volcanoCenter;
@@ -194,12 +209,22 @@ int Solution::initSolution()
 	}
 
 	cam.setCamera(viewerPosition, lookAtPoint, upVector);
+	cam.setPerspectiveView(110, 1, 0.01f, 1000);
 
-	Surface::createSurface(30, 30, vtx, ind);
+	Surface::createSurface(30, 30,0,1,0,1,vtx, ind);
 	testSurface.createVAO(shader, vtx, ind);
 	testSurface.setInitialPosition(volcanoCenter.x, volcanoCenter.y, volcanoCenter.z);
 	testSurface.setInitialRotations(0, 0, 0);
 	testSurface.setScale(25, 1, 25);
+
+
+	//set volcano texture
+	volcanoTex.loadTextureImage("volcan.jpeg", GL_TEXTURE_2D);
+
+	//skybox initialization
+	skybox.init("skybox.vert", "skybox.frag");
+	skybox.loadTextureImages(sbTextureNameSunnyDay);
+
 
 	factor = 1;
 	err:
@@ -237,7 +262,9 @@ void Solution::render()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-
+	skybox.render(cam);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.getTexHandle());
 
 	// set the camera matrix
 	viewMat = cam.getViewMatrix(NULL);
@@ -249,6 +276,11 @@ void Solution::render()
 	projMat = cam.getProjectionMatrix(NULL);
 	// move matrix to shader
 	shader.copyMatrixToShader(projMat, "projection");
+
+	shader.copyFloatVectorToShader((float*)&volcanoCenter, 1, 3, "center");
+	volcanoTex.setTextureSampler(shader, "texSampler", GL_TEXTURE1);
+
+	
 
 	// render the objects
 
