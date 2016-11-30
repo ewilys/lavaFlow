@@ -200,7 +200,7 @@ int Solution::initSolution()
 	Vector3f lookAtPoint = volcanoCenter;
 	Vector3f upVector = Vector3f(0, 1, 0);
 
-	GenPosition = volcanoCenter;
+	//GenPosition = volcanoCenter;
 
 	/*rc = particleShader.createShaderProgram("particle.vert", "particle.frag");
 	if (rc != 0) {
@@ -439,7 +439,7 @@ void Solution::render()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	//skybox.render(cam);
+	skybox.render(cam);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.getTexHandle());
 
