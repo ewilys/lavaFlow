@@ -200,14 +200,14 @@ int Solution::initSolution()
 	Vector3f lookAtPoint = volcanoCenter;
 	Vector3f upVector = Vector3f(0, 1, 0);
 
-	//GenPosition = volcanoCenter;
+	GenPosition = volcanoCenter;
 
-	/*rc = particleShader.createShaderProgram("particle.vert", "particle.frag");
+	rc = particleShader.createShaderProgram("particle.vert", "particle.frag");
 	if (rc != 0) {
 		fprintf(stderr, "Error in generating particle shader (solution)\n");
 		rc = -1;
 		goto err;
-	}*/
+	}
 	// create the shader object
 	rc = shader.createShaderProgram("complexObjects1.vert", "complexObjects1.frag");
 	if (rc != 0) {
@@ -232,8 +232,8 @@ int Solution::initSolution()
 	volcanoTex.loadTextureImage("volcan.jpeg", GL_TEXTURE_2D);
 
 	//skybox initialization
-	skybox.init("skybox.vert", "skybox.frag");
-	skybox.loadTextureImages(sbTextureNameSunnyDay);
+	//skybox.init("skybox.vert", "skybox.frag");
+	//skybox.loadTextureImages(sbTextureNameSunnyDay);
 
 
 	factor = 1;
@@ -386,7 +386,7 @@ void Solution::UpdateParticles()
 
 		}
 	}
-	//printf("time %i\n", time);
+	printf("time %i\n", time);
 	if (time == GENERATE_NEW_PARTICLE){
 		time = 0;
 		//create new particle
@@ -439,10 +439,11 @@ void Solution::render()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	/*
 	skybox.render(cam);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.getTexHandle());
-
+	*/
 	// use the created shader
 	shader.useProgram(1);
 	// set the camera matrix
@@ -465,7 +466,7 @@ void Solution::render()
 	testSurface.render(shader);
 
 	//render particles
-	/*
+	
 	particleShader.useProgram(1);
 	particleShader.copyMatrixToShader(viewMat, "view");
 	particleShader.copyMatrixToShader(projMat, "projection");
@@ -477,7 +478,7 @@ void Solution::render()
 	glDrawArrays(GL_POINTS, 0, ParticlesCount);
 
 	glBindVertexArray(0);
-	*/
+	
 	
 	glutSwapBuffers();
 }
@@ -599,8 +600,8 @@ void Solution::winResize(int width, int height)
 
 int Solution::updateObjects(int numFrames)
 {
-	
-	//UpdateParticles();
+	time++;
+	UpdateParticles();
 
 	glutPostRedisplay();
 	return 0;

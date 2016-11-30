@@ -13,6 +13,7 @@ int main(int argc, char** argv)
 
 	sol.initOpenGL();
 	sol.initSolution();
+	sol.InitalizeParticleSystem();
 	Solution::setSolution(&sol);
 
 	glutMainLoop();
