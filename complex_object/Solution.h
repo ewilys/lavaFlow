@@ -43,12 +43,13 @@
 #include "Shader.h"
 #include "sphere.h"
 #include "surface.h"
-#include "cylinder.h"
+
 #include "camera.h"
 #include "Texture.h"
 #include "SkyBox.h"
 #include "CParticle.h"
-
+#include <random>
+#include <functional>
 
 
 #define UPDATE_RENDERRED_OBJECTS 1000
@@ -85,7 +86,8 @@ public:
 	bool InitalizeParticleSystem();
 
 	void UpdateParticles();
-
+	Vector3f ApplyBoundaries(Vector3f pos);
+	Vector3f randVelocity();
 
 	Shader shader;
 	Shader particleShader;
@@ -104,10 +106,11 @@ public:
 	CParticle ParticlesContainer[MAX_PARTICLES_ON_SCENE];
 	CParticle gpuParticleContainer[MAX_PARTICLES_ON_SCENE];
 	const Vector3f Gravity = Vector3f(0, -9.81, 0);
-	 Vector3f GenPosition ;
+	Vector3f GenPosition ;
 	const Vector3f GenVelocity = Vector3f(0, 0, 0);
 	const Vector4f GenColor = Vector4f(1.0, 0, 0, 1.0);
 	const float lifeTime = 100.0f;
+	
 
 	GLuint triVAO = -1;
 	GLuint vbo;

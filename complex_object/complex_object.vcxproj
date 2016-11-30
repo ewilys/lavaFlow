@@ -101,7 +101,6 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="complex_object.cpp" />
-    <ClCompile Include="cylinder.cpp" />
     <ClCompile Include="graphicsObject.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SkyBox.cpp" />

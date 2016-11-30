@@ -41,7 +41,7 @@ float circularWave(vec3 p, vec3 centre,	float waveLength, float amplitude,float 
 
 void main(){
 	
-	gl_Position = projection * view * model * vtxPos;
+	//gl_Position = projection * view * model * vtxPos;
 	vec4 worldPos=model*vtxPos;
 
 	float dist=sqrt(pow(center.x-worldPos.x,2)+pow(center.z-worldPos.z,2));

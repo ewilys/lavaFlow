@@ -299,16 +299,40 @@ bool Solution::InitalizeParticleSystem()
 
 	return(0);
 }
-/***********************************************************
+/************************************************************/
 //generate a float in range min-max 
 float Solution::gRandF(float min, float max){
-	//std::mt19937 generator;
-	//std::uniform_real_distribution<float> uniform_distribution(min, max);
-	//auto my_rand = std::bind(uniform_distribution, generator);
-
-	//return my_rand();
+	return (static_cast <float>(rand()  / (static_cast <float>(RAND_MAX/(max-min)))))+min;
 }
-*/
+
+//generate a random velocity vector
+Vector3f Solution::randVelocity(){
+	Vector3f randVel;
+	randVel.x = gRandF(-2, 2);
+	randVel.y = gRandF(0, PARTICLE_SIZE);
+	//randVel.y = 0;
+	randVel.z = gRandF(-2, 2);
+
+	if (randVel.x < 0 && randVel.z < 0){//if particle goes backwards need to change one coord
+		if (randVel.x < randVel.z){//if |x|>|z| 
+			randVel.x = -randVel.x; //then set x as positive
+		}
+		else{//if |z|>|x| 
+			randVel.z = -randVel.z;//then set z as positive
+		}
+	}
+	return randVel;
+}
+
+
+Vector3f Solution::ApplyBoundaries(Vector3f pos){
+	if (pos.x < 0)pos.x = 0;
+	if (pos.y < 0)pos.y = 0;
+	if (pos.y>3 * PARTICLE_SIZE)pos.y = PARTICLE_SIZE;
+	if (pos.z < 0)pos.z = 0;
+	return pos;
+}
+
 
 int Solution::FindUnusedParticle(){
 
@@ -362,17 +386,24 @@ void Solution::UpdateParticles()
 	for (int i = firstUsedParticle; i<firstUsedParticle + nbParticle; i++){
 
 		CParticle& p = ParticlesContainer[i%MAX_PARTICLES_ON_SCENE]; // shortcut
-
+		
 		if (p.fLifeTime - delta > 0.0f){
 
 			// Decrease life
 			p.fLifeTime -= delta;
 
 
-			// Simulate simple physics : gravity only, no collisions
-			p.vVelocity += Gravity * (float)delta * 0.005f;
-			p.vPosition += p.vVelocity * (float)delta;
+			// Simulate simple physics : 
 
+			//random velocity and multiply by ratio and fluidity
+			
+			p.vVelocity += randVelocity()*(float)delta * 0.005f;
+			
+			
+			//update position
+			p.vPosition += p.vVelocity * (float)delta;
+			//apply boundaries on position.
+			p.vPosition = ApplyBoundaries(p.vPosition);
 
 			// Fill the GPU buffer
 			gpuParticleContainer[ParticlesCount] = p;
@@ -386,7 +417,7 @@ void Solution::UpdateParticles()
 
 		}
 	}
-	printf("time %i\n", time);
+	//printf("time %i\n", time);
 	if (time == GENERATE_NEW_PARTICLE){
 		time = 0;
 		//create new particle
@@ -394,7 +425,8 @@ void Solution::UpdateParticles()
 			CParticle v;
 
 
-			v.vPosition = Vector3f(GenPosition.x + i*PARTICLE_SIZE, GenPosition.y, GenPosition.z);
+			v.vPosition = GenPosition;
+			//v.vPosition.x += i;
 			v.vVelocity = GenVelocity;
 			v.vColor = GenColor;
 			v.fLifeTime = lifeTime;
@@ -405,7 +437,7 @@ void Solution::UpdateParticles()
 
 			gpuParticleContainer[ParticlesCount] = v;
 			nextParticleToUse = FindUnusedParticle();
-			printf("nextParticleToUse %i\n", nextParticleToUse);
+			//printf("nextParticleToUse %i\n", nextParticleToUse);
 
 		}
 	}
@@ -470,6 +502,7 @@ void Solution::render()
 	particleShader.useProgram(1);
 	particleShader.copyMatrixToShader(viewMat, "view");
 	particleShader.copyMatrixToShader(projMat, "projection");
+	particleShader.copyFloatVectorToShader((float*)&volcanoCenter, 1, 3, "center");
 	
 	// bind the VAO buffer
 	glBindVertexArray(triVAO);
