@@ -415,6 +415,7 @@ int Shader::copyFloatVectorToShader(float *v, int vectorSize, int elementSize, c
 	location = glGetUniformLocation(getProgId(), name);
 	//assert(location != -1);  DN
 	if (location == -1) return (-1);
+	//rc = glGetError();
 	switch (elementSize) {
 	case 1:
 		glUniform1fv(location, vectorSize, v);

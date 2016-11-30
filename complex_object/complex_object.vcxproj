@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="CParticle.h" />
     <ClInclude Include="cylinder.h" />
     <ClInclude Include="graphicsObject.h" />
     <ClInclude Include="Shader.h" />

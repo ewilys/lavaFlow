@@ -7,13 +7,13 @@ in Data{
 	vec4 color;
 }In;
 
-out vec4 color;
+out vec4 colour;
 
 void main()
 {
 	// output the colour
-	color = In.color; 
+	colour = In.color; 
 	
-	//colour=texture2D(texSampler,In.texCoord);
+	colour=texture2D(texSampler,In.texCoord);
 	//gl_FragColor=vec4(1.0,0.0,0.0,0.0);
 }

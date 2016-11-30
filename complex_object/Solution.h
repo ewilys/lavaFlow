@@ -47,11 +47,19 @@
 #include "camera.h"
 #include "Texture.h"
 #include "SkyBox.h"
+#include "CParticle.h"
 
 
 
 #define UPDATE_RENDERRED_OBJECTS 1000
 #define FRAME_TIME 30
+
+#define NUM_PARTICLE_ATTRIBUTES 4
+#define GENERATE_NEW_PARTICLE 3
+#define MAX_PARTICLES_ON_SCENE 3000
+#define NEW_PARTICLES 5
+#define PARTICLE_SIZE 10
+
 
 class Solution
 {
@@ -74,26 +82,52 @@ public:
 	// generaL shader that will be used by all objects
 	// initialization of the solution
 	int initSolution();
+	bool InitalizeParticleSystem();
+
+	void UpdateParticles();
 
 
 	Shader shader;
+	Shader particleShader;
 	Camera cam;
 	SkyBox skybox;
 	Surface testSurface;
 	Vector3f volcanoCenter;
 	int numFrames;
+	int time=0;
 	int factor;
 	static Solution *sol;
 	Texture volcanoTex;
 	
+	Matrix4f matProjection, matView;
+
+	CParticle ParticlesContainer[MAX_PARTICLES_ON_SCENE];
+	CParticle gpuParticleContainer[MAX_PARTICLES_ON_SCENE];
+	const Vector3f Gravity = Vector3f(0, -9.81, 0);
+	 Vector3f GenPosition ;
+	const Vector3f GenVelocity = Vector3f(0, 0, 0);
+	const Vector4f GenColor = Vector4f(1.0, 0, 0, 1.0);
+	const float lifeTime = 100.0f;
+
+	GLuint triVAO = -1;
+	GLuint vbo;
+	int ParticlesCount;
+	int nextParticleToUse = 0;
+	int firstUsedParticle = 0;
+
+
 
 	void render();
 	void keyboard(unsigned char key, int x, int y);
 	void specialKeyboard(int key, int x, int y);
 	void winResize(int width, int height);
 	int timer(int operation);
+	int FindUnusedParticle();
+	int FindFirstUsedParticle();
 
 	int updateObjects(int numFrames);
+	float gRandF(float min, float max);
+	
 };
 
 

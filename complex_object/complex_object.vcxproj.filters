@@ -48,6 +48,9 @@
     <ClInclude Include="SkyBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CParticle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="complex_object.cpp">

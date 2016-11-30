@@ -200,6 +200,14 @@ int Solution::initSolution()
 	Vector3f lookAtPoint = volcanoCenter;
 	Vector3f upVector = Vector3f(0, 1, 0);
 
+	GenPosition = volcanoCenter;
+
+	/*rc = particleShader.createShaderProgram("particle.vert", "particle.frag");
+	if (rc != 0) {
+		fprintf(stderr, "Error in generating particle shader (solution)\n");
+		rc = -1;
+		goto err;
+	}*/
 	// create the shader object
 	rc = shader.createShaderProgram("complexObjects1.vert", "complexObjects1.frag");
 	if (rc != 0) {
@@ -208,8 +216,10 @@ int Solution::initSolution()
 		goto err;
 	}
 
+	
+
 	cam.setCamera(viewerPosition, lookAtPoint, upVector);
-	cam.setPerspectiveView(110, 1, 0.01f, 1000);
+	//cam.setPerspectiveView(110, 1, 0.01f, 1000);
 
 	Surface::createSurface(30, 30,0,1,0,1,vtx, ind);
 	testSurface.createVAO(shader, vtx, ind);
@@ -239,10 +249,180 @@ void Solution::setSolution(Solution * _sol)
 	Solution::sol = _sol;
 }
 
+/********************************************************************/
+
+bool Solution::InitalizeParticleSystem()
+{
+
+	CParticle v;
+	ParticlesCount = 1;
+
+	v.vPosition = GenPosition;
+	v.vVelocity = GenVelocity;
+	v.vColor = GenColor;
+	v.fLifeTime = lifeTime;
+
+	ParticlesContainer[0] = v;
+	gpuParticleContainer[0] = v;
+
+	// obtain a handle to the VAO 
+	glGenVertexArrays(1, &triVAO);
+
+	// bind the VAO in order to indicate which VAO is currently used
+	glBindVertexArray(triVAO);
+
+	// next we follow the same process of generating a VBO.  All the steps are stord in the VAO
+
+	// get a handle to the vbo
+	glGenBuffers(1, &vbo);
+
+	// indicate that which vbo to be used
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	// provide the vertex array to be stored in the VBO 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(CParticle)*MAX_PARTICLES_ON_SCENE, gpuParticleContainer, GL_STATIC_DRAW);
+
+	// bind the vertx attributes with the shader
+	GLuint positionLoc = glGetAttribLocation(particleShader.getProgId(), "vtxPos");
+	glEnableVertexAttribArray(positionLoc);
+	glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(CParticle), (void *)((char *)&v.vPosition - (char *)&v));
+
+	GLuint colourLoc = glGetAttribLocation(particleShader.getProgId(), "vtxColour");
+	glEnableVertexAttribArray(colourLoc);
+	glVertexAttribPointer(colourLoc, 4, GL_FLOAT, GL_FALSE, sizeof(CParticle), (void *)((char *)&v.vColor - (char *)&v));
+
+	// disable the vertex array from being current (stop recording in this case)
+	glEnableVertexAttribArray(0);
+
+	// disable the vbo from being current
+	glBindVertexArray(0);
+
+	return(0);
+}
+/***********************************************************
+//generate a float in range min-max 
+float Solution::gRandF(float min, float max){
+	//std::mt19937 generator;
+	//std::uniform_real_distribution<float> uniform_distribution(min, max);
+	//auto my_rand = std::bind(uniform_distribution, generator);
+
+	//return my_rand();
+}
+*/
+
+int Solution::FindUnusedParticle(){
+
+	nextParticleToUse = (nextParticleToUse + 1) % MAX_PARTICLES_ON_SCENE;
+	if (nextParticleToUse == firstUsedParticle && ParticlesContainer[firstUsedParticle].fLifeTime > 0.0){
+		ParticlesContainer[firstUsedParticle].fLifeTime = 0.0;
+		return firstUsedParticle;
+	}
 
 
+	return nextParticleToUse;
+}
+
+int Solution::FindFirstUsedParticle(){
+	if (firstUsedParticle == MAX_PARTICLES_ON_SCENE - 1 && ParticlesContainer[firstUsedParticle].fLifeTime <= 0.0)firstUsedParticle = 0;
+	for (int i = firstUsedParticle; i<MAX_PARTICLES_ON_SCENE; i++){
+		if (ParticlesContainer[i].fLifeTime > 0){
+			firstUsedParticle = i;
+			return i;
+		}
+	}
+
+
+	return 0; // All particles are taken, override the first one
+}
+
+
+/***********************************************************/
+
+void Solution::UpdateParticles()
+{
+	//update last particle used
+	nextParticleToUse = FindUnusedParticle();
+	//printf("nextParticleToUse %i \n", nextParticleToUse);
+
+	//update 1st particle used
+	firstUsedParticle = FindFirstUsedParticle();
+	//printf("firstUsedParticle %i \n", firstUsedParticle);
+
+	//nb particles for previous 
+	int nbParticle;
+	if (nextParticleToUse>firstUsedParticle)nbParticle = nextParticleToUse - firstUsedParticle;
+	else{ nbParticle = MAX_PARTICLES_ON_SCENE - firstUsedParticle + nextParticleToUse; }
+
+
+	//nb particles to render for this iteration
+	ParticlesCount = 0;
+
+
+	float delta = 0.1;
+	for (int i = firstUsedParticle; i<firstUsedParticle + nbParticle; i++){
+
+		CParticle& p = ParticlesContainer[i%MAX_PARTICLES_ON_SCENE]; // shortcut
+
+		if (p.fLifeTime - delta > 0.0f){
+
+			// Decrease life
+			p.fLifeTime -= delta;
+
+
+			// Simulate simple physics : gravity only, no collisions
+			p.vVelocity += Gravity * (float)delta * 0.005f;
+			p.vPosition += p.vVelocity * (float)delta;
+
+
+			// Fill the GPU buffer
+			gpuParticleContainer[ParticlesCount] = p;
+			ParticlesCount += 1;
+
+
+		}
+		else{
+			//particle dies
+			p.fLifeTime = 0.0;
+
+		}
+	}
+	//printf("time %i\n", time);
+	if (time == GENERATE_NEW_PARTICLE){
+		time = 0;
+		//create new particle
+		for (int i = 0; i < NEW_PARTICLES; i++){
+			CParticle v;
+
+
+			v.vPosition = Vector3f(GenPosition.x + i*PARTICLE_SIZE, GenPosition.y, GenPosition.z);
+			v.vVelocity = GenVelocity;
+			v.vColor = GenColor;
+			v.fLifeTime = lifeTime;
+
+			ParticlesContainer[nextParticleToUse] = v;
+
+			ParticlesCount += 1;
+
+			gpuParticleContainer[ParticlesCount] = v;
+			nextParticleToUse = FindUnusedParticle();
+			printf("nextParticleToUse %i\n", nextParticleToUse);
+
+		}
+	}
+	printf("particle count %i\n", ParticlesCount);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//update the data in the VBO
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(CParticle)*ParticlesCount, gpuParticleContainer);
+
+	// disable the vbo from being current
+	//glBindVertexArray(0);
+
+}
 /************************************************************/
-
+/********************************************************************/
 // render function.  
 
 
@@ -254,18 +434,17 @@ void Solution::render()
 	
 
 
-	// use the created shader
-	shader.useProgram(1);
-
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	skybox.render(cam);
+	//skybox.render(cam);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.getTexHandle());
 
+	// use the created shader
+	shader.useProgram(1);
 	// set the camera matrix
 	viewMat = cam.getViewMatrix(NULL);
 	// move matrix to shader
@@ -278,13 +457,28 @@ void Solution::render()
 	shader.copyMatrixToShader(projMat, "projection");
 
 	shader.copyFloatVectorToShader((float*)&volcanoCenter, 1, 3, "center");
+	glActiveTexture(GL_TEXTURE1);
 	volcanoTex.setTextureSampler(shader, "texSampler", GL_TEXTURE1);
 
-	
-
-	// render the objects
+	// render volcano
 
 	testSurface.render(shader);
+
+	//render particles
+	/*
+	particleShader.useProgram(1);
+	particleShader.copyMatrixToShader(viewMat, "view");
+	particleShader.copyMatrixToShader(projMat, "projection");
+	
+	// bind the VAO buffer
+	glBindVertexArray(triVAO);
+
+	glPointSize(PARTICLE_SIZE);
+	glDrawArrays(GL_POINTS, 0, ParticlesCount);
+
+	glBindVertexArray(0);
+	*/
+	
 	glutSwapBuffers();
 }
 
@@ -405,8 +599,8 @@ void Solution::winResize(int width, int height)
 
 int Solution::updateObjects(int numFrames)
 {
-	// recall that this will be carried out in the model space
 	
+	//UpdateParticles();
 
 	glutPostRedisplay();
 	return 0;
