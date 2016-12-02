@@ -221,7 +221,7 @@ int Solution::initSolution()
 	cam.setCamera(viewerPosition, lookAtPoint, upVector);
 	//cam.setPerspectiveView(110, 1, 0.01f, 1000);
 
-	Surface::createSurface(30, 30,0,1,0,1,vtx, ind);
+	Surface::createSurface(60, 60,0,1,0,1,vtx, ind);
 	testSurface.createVAO(shader, vtx, ind);
 	testSurface.setInitialPosition(volcanoCenter.x, volcanoCenter.y, volcanoCenter.z);
 	testSurface.setInitialRotations(0, 0, 0);
@@ -262,8 +262,10 @@ bool Solution::InitalizeParticleSystem()
 	v.vColor = GenColor;
 	v.fLifeTime = lifeTime;
 
-	ParticlesContainer[0] = v;
-	gpuParticleContainer[0] = v;
+	for (int i = 0; i < 100; i++){
+		ParticlesContainer[i] = v;
+		gpuParticleContainer[i] = v;
+	}
 
 	// obtain a handle to the VAO 
 	glGenVertexArrays(1, &triVAO);

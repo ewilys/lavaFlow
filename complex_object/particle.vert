@@ -19,7 +19,7 @@ uniform vec3 center;
 out vec4 vColour;
 
 
-float circularWave(vec3 p, vec3 centre,	float waveLength, float amplitude,float frequency,float displacement)
+float circularWave(vec3 p, vec3 centre,	float b)
 {
 
 	float height,d;
@@ -29,10 +29,9 @@ float circularWave(vec3 p, vec3 centre,	float waveLength, float amplitude,float 
 	dx = p.x - centre.x;
 	d = sqrt(dz*dz + dx*dx);
 	
-	 height = amplitude*sin(waveLength*d+frequency+displacement);
-	if (d<=0.75){
-		height=-3;
-	}
+	 height = -sqrt((1+b*b)/(1+b*b*cos(d)*cos(d)))*cos(d);
+	// height = -cos(d);
+
 	return(height);
 }
 
@@ -45,12 +44,12 @@ void main(void)
 	vec4 worldPos=vec4(vtxPos,1.0);
 
 	float dist=sqrt(pow(center.x-worldPos.x,2)+pow(center.z-worldPos.z,2));
-	if (dist<radius){
+	if (dist<radius && dist>minRad){
 		//linear interpolation
 		worldPos.y=elevation+dist*(0-elevation)/radius;
 	}
-	if (dist<minRad){
-		worldPos.y=worldPos.y+circularWave(vec3(worldPos.xyz),center,1, 2, 0.1,10);
+	if (dist<=minRad){
+		worldPos.y=(elevation+minRad*(0-elevation)/radius)+circularWave(vec3(worldPos.xyz),center,1.5);
 	}
 
 
