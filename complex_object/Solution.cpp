@@ -35,6 +35,7 @@
 #define NORMAL_SPEED 0.5
 #define MAX_SPEED 2.0
 
+#define PI 3.14159265
 
 
 
@@ -370,6 +371,25 @@ int Solution::FindFirstUsedParticle(){
 }
 
 
+float Solution::updateTemp(Vector3f pos){
+	//equation x=z temperature=1
+	//find distance between line x=z and point
+	float distFromXeqZ = abs(pos.x - pos.z) / (sqrt(2));
+
+	//find equation of line perpendicular to line x=z passing through pt P (x=-z+b)
+	float B = pos.x + pos.z;
+
+	//distance between line z=0(boundary) and line x=z through point P
+	float distBetweenZ0AndXeqZ = B*sin(45*PI/180);
+
+	//compute new temp with linear interpolation
+	float newTemp = 1 + (distFromXeqZ - 0)*(0 - 1) / distBetweenZ0AndXeqZ;
+	if (newTemp > 1)newTemp = 1;
+	if (newTemp < 0)newTemp = 0;
+	//printf("temperature %f \n", newTemp);
+	return newTemp;
+}
+
 /***********************************************************/
 
 void Solution::UpdateParticles()
@@ -407,13 +427,16 @@ void Solution::UpdateParticles()
 
 			//random velocity and multiply by ratio and fluidity
 			
-			p.vVelocity += randVelocity()*(float)delta * 0.005f;
+			p.vVelocity += randVelocity()*(float)delta * 0.01*p.temperature;//if temp =1 fast if temp =0 slow
 			
 			
 			//update position
 			p.vPosition += p.vVelocity * (float)delta;
 			//apply boundaries on position.
 			p.vPosition = ApplyBoundaries(p.vPosition);
+
+			//update temperature depending on position 
+			p.temperature = updateTemp(p.vPosition);
 
 			// Fill the GPU buffer
 			gpuParticleContainer[ParticlesCount] = p;
@@ -436,7 +459,6 @@ void Solution::UpdateParticles()
 
 
 			v.vPosition = GenPosition;
-			//v.vPosition.x += i;
 			v.vVelocity = GenVelocity;
 			v.vColor = GenColor;
 			v.fLifeTime = lifeTime;
@@ -504,8 +526,7 @@ void Solution::render()
 	glActiveTexture(GL_TEXTURE1);
 	volcanoTex.setTextureSampler(shader, "texSampler", GL_TEXTURE1);
 
-	glActiveTexture(GL_TEXTURE2);
-	volcanoTex.setTextureSampler(particleShader, "partSampler", GL_TEXTURE2);
+	
 	// render volcano
 
 	testSurface.render(shader);
@@ -517,6 +538,8 @@ void Solution::render()
 	particleShader.copyMatrixToShader(projMat, "projection");
 	particleShader.copyFloatVectorToShader((float*)&volcanoCenter, 1, 3, "center");
 	
+	glActiveTexture(GL_TEXTURE2);
+	lavaTex.setTextureSampler(particleShader, "partSampler", GL_TEXTURE2);
 	// bind the VAO buffer
 	glBindVertexArray(triVAO);
 

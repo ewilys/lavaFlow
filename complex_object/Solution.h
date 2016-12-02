@@ -59,7 +59,7 @@
 #define GENERATE_NEW_PARTICLE 3
 #define MAX_PARTICLES_ON_SCENE 3000
 #define NEW_PARTICLES 5
-#define PARTICLE_SIZE 10
+#define PARTICLE_SIZE 5
 
 
 class Solution
@@ -88,6 +88,7 @@ public:
 	void UpdateParticles();
 	Vector3f ApplyBoundaries(Vector3f pos);
 	Vector3f randVelocity();
+	float updateTemp(Vector3f pos);
 
 	Shader shader;
 	Shader particleShader;
@@ -110,7 +111,7 @@ public:
 	Vector3f GenPosition ;
 	const Vector3f GenVelocity = Vector3f(0, 0, 0);
 	const Vector4f GenColor = Vector4f(1.0, 0, 0, 1.0);
-	const float lifeTime = 100.0f;
+	const float lifeTime = 250.0f;
 	const float tempGen = 0.5f;
 	
 
