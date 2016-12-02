@@ -32,7 +32,7 @@ float circularWave(vec3 p, vec3 centre,	float b)
 	d = sqrt(dz*dz + dx*dx);
 	
 	 height = -sqrt((1+b*b)/(1+b*b*cos(d)*cos(d)))*cos(d);
-	// height = -cos(d);
+	 if (height<0)height=0;
 
 	return(height);
 }

@@ -33,7 +33,7 @@ public:
 	Vector3f vVelocity;
 	Vector4f vColor;
 	float fLifeTime;
-	//float temperature;
+	float temperature;
 	//float density;
 };
 

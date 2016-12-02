@@ -100,6 +100,7 @@ public:
 	int factor;
 	static Solution *sol;
 	Texture volcanoTex;
+	Texture lavaTex;
 	
 	Matrix4f matProjection, matView;
 
@@ -110,6 +111,7 @@ public:
 	const Vector3f GenVelocity = Vector3f(0, 0, 0);
 	const Vector4f GenColor = Vector4f(1.0, 0, 0, 1.0);
 	const float lifeTime = 100.0f;
+	const float tempGen = 0.5f;
 	
 
 	GLuint triVAO = -1;

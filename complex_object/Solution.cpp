@@ -230,6 +230,8 @@ int Solution::initSolution()
 
 	//set volcano texture
 	volcanoTex.loadTextureImage("volcan.jpeg", GL_TEXTURE_2D);
+	//set lava texture
+	lavaTex.loadTextureImage("MoltenLava.png", GL_TEXTURE_2D);
 
 	//skybox initialization
 	//skybox.init("skybox.vert", "skybox.frag");
@@ -261,8 +263,10 @@ bool Solution::InitalizeParticleSystem()
 	v.vVelocity = GenVelocity;
 	v.vColor = GenColor;
 	v.fLifeTime = lifeTime;
+	v.temperature = tempGen;
 
 	for (int i = 0; i < 100; i++){
+	
 		ParticlesContainer[i] = v;
 		gpuParticleContainer[i] = v;
 	}
@@ -292,6 +296,10 @@ bool Solution::InitalizeParticleSystem()
 	GLuint colourLoc = glGetAttribLocation(particleShader.getProgId(), "vtxColour");
 	glEnableVertexAttribArray(colourLoc);
 	glVertexAttribPointer(colourLoc, 4, GL_FLOAT, GL_FALSE, sizeof(CParticle), (void *)((char *)&v.vColor - (char *)&v));
+
+	GLuint tempLoc = glGetAttribLocation(particleShader.getProgId(), "vtxTemp");
+	glEnableVertexAttribArray(tempLoc);
+	glVertexAttribPointer(tempLoc, 1, GL_FLOAT, GL_FALSE, sizeof(CParticle), (void *)((char *)&v.temperature - (char *)&v));
 
 	// disable the vertex array from being current (stop recording in this case)
 	glEnableVertexAttribArray(0);
@@ -432,6 +440,7 @@ void Solution::UpdateParticles()
 			v.vVelocity = GenVelocity;
 			v.vColor = GenColor;
 			v.fLifeTime = lifeTime;
+			v.temperature = tempGen;
 
 			ParticlesContainer[nextParticleToUse] = v;
 
@@ -495,6 +504,8 @@ void Solution::render()
 	glActiveTexture(GL_TEXTURE1);
 	volcanoTex.setTextureSampler(shader, "texSampler", GL_TEXTURE1);
 
+	glActiveTexture(GL_TEXTURE2);
+	volcanoTex.setTextureSampler(particleShader, "partSampler", GL_TEXTURE2);
 	// render volcano
 
 	testSurface.render(shader);

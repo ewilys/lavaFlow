@@ -4,6 +4,7 @@
 
 in vec3 vtxPos;
 in vec4 vtxColour;
+in float vtxTemp;
 
 uniform mat4 view;
 uniform mat4 projection ;
@@ -17,6 +18,7 @@ uniform vec3 center;
 // The output is a colour that is passed on to the fragment shader
 
 out vec4 vColour;
+out float Temp;
 
 
 float circularWave(vec3 p, vec3 centre,	float b)
@@ -30,7 +32,7 @@ float circularWave(vec3 p, vec3 centre,	float b)
 	d = sqrt(dz*dz + dx*dx);
 	
 	 height = -sqrt((1+b*b)/(1+b*b*cos(d)*cos(d)))*cos(d);
-	// height = -cos(d);
+	if (height<0)height=0;
 
 	return(height);
 }
@@ -54,6 +56,7 @@ void main(void)
 
 
 	vColour = vtxColour;
+	Temp=vtxTemp;
 	gl_Position = projection*view*worldPos;
 
 }
