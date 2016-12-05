@@ -57,9 +57,9 @@
 
 #define NUM_PARTICLE_ATTRIBUTES 4
 #define GENERATE_NEW_PARTICLE 3
-#define MAX_PARTICLES_ON_SCENE 3000
+#define MAX_PARTICLES_ON_SCENE 2500
 #define NEW_PARTICLES 5
-#define PARTICLE_SIZE 5
+#define PARTICLE_SIZE 7
 
 
 class Solution
@@ -118,7 +118,7 @@ public:
 	GLuint triVAO = -1;
 	GLuint vbo;
 	int ParticlesCount;
-	int nextParticleToUse = 0;
+	int nextParticleToUse = 100;
 	int firstUsedParticle = 0;
 
 

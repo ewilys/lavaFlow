@@ -48,10 +48,10 @@ void main(void)
 	float dist=sqrt(pow(center.x-worldPos.x,2)+pow(center.z-worldPos.z,2));
 	if (dist<radius && dist>minRad){
 		//linear interpolation
-		worldPos.y=elevation+dist*(0-elevation)/radius;
+		worldPos.y=worldPos.y+elevation+dist*(0-elevation)/radius;
 	}
 	if (dist<=minRad){
-		worldPos.y=(elevation+minRad*(0-elevation)/radius)+circularWave(vec3(worldPos.xyz),center,1.5);
+		worldPos.y=worldPos.y+(elevation+minRad*(0-elevation)/radius)+circularWave(vec3(worldPos.xyz),center,1.5);
 	}
 
 

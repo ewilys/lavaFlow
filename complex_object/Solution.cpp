@@ -320,7 +320,7 @@ float Solution::gRandF(float min, float max){
 Vector3f Solution::randVelocity(){
 	Vector3f randVel;
 	randVel.x = gRandF(-2, 2);
-	randVel.y = gRandF(0, PARTICLE_SIZE);
+	randVel.y = gRandF(0,2);
 	//randVel.y = 0;
 	randVel.z = gRandF(-2, 2);
 
@@ -339,7 +339,7 @@ Vector3f Solution::randVelocity(){
 Vector3f Solution::ApplyBoundaries(Vector3f pos){
 	if (pos.x < 0)pos.x = 0;
 	if (pos.y < 0)pos.y = 0;
-	if (pos.y>3 * PARTICLE_SIZE)pos.y = PARTICLE_SIZE;
+	if (pos.y> PARTICLE_SIZE/4)pos.y = PARTICLE_SIZE/4;
 	if (pos.z < 0)pos.z = 0;
 	return pos;
 }
@@ -348,11 +348,12 @@ Vector3f Solution::ApplyBoundaries(Vector3f pos){
 int Solution::FindUnusedParticle(){
 
 	nextParticleToUse = (nextParticleToUse + 1) % MAX_PARTICLES_ON_SCENE;
-	if (nextParticleToUse == firstUsedParticle && ParticlesContainer[firstUsedParticle].fLifeTime > 0.0){
-		ParticlesContainer[firstUsedParticle].fLifeTime = 0.0;
-		return firstUsedParticle;
+	if (nextParticleToUse == firstUsedParticle ){
+		ParticlesContainer[firstUsedParticle].fLifeTime = -1.0;
+		firstUsedParticle += 1;
+		return nextParticleToUse;
 	}
-
+	
 
 	return nextParticleToUse;
 }
@@ -384,6 +385,8 @@ float Solution::updateTemp(Vector3f pos){
 
 	//compute new temp with linear interpolation
 	float newTemp = 1 + (distFromXeqZ - 0)*(0 - 1) / distBetweenZ0AndXeqZ;
+	newTemp = newTemp*pow(10, 1);
+	newTemp = newTemp - floor(newTemp);
 	if (newTemp > 1)newTemp = 1;
 	if (newTemp < 0)newTemp = 0;
 	//printf("temperature %f \n", newTemp);
@@ -395,7 +398,7 @@ float Solution::updateTemp(Vector3f pos){
 void Solution::UpdateParticles()
 {
 	//update last particle used
-	nextParticleToUse = FindUnusedParticle();
+	//nextParticleToUse = FindUnusedParticle();
 	//printf("nextParticleToUse %i \n", nextParticleToUse);
 
 	//update 1st particle used
@@ -404,8 +407,8 @@ void Solution::UpdateParticles()
 
 	//nb particles for previous 
 	int nbParticle;
-	if (nextParticleToUse>firstUsedParticle)nbParticle = nextParticleToUse - firstUsedParticle;
-	else{ nbParticle = MAX_PARTICLES_ON_SCENE - firstUsedParticle + nextParticleToUse; }
+	if (nextParticleToUse <= firstUsedParticle)nbParticle = MAX_PARTICLES_ON_SCENE - firstUsedParticle + nextParticleToUse;
+	else{ nbParticle = nextParticleToUse - firstUsedParticle; }
 
 
 	//nb particles to render for this iteration
@@ -435,14 +438,19 @@ void Solution::UpdateParticles()
 			//apply boundaries on position.
 			p.vPosition = ApplyBoundaries(p.vPosition);
 
-			//update temperature depending on position 
-			p.temperature = updateTemp(p.vPosition);
+			if (p.vPosition.x > 125 || p.vPosition.z > 125){
+				//particle out of volcano => dies
+				p.fLifeTime = 0.0;
+			}
+			else{
+				//update temperature depending on position 
+				p.temperature = updateTemp(p.vPosition);
 
-			// Fill the GPU buffer
-			gpuParticleContainer[ParticlesCount] = p;
-			ParticlesCount += 1;
-
-
+				// Fill the GPU buffer
+				gpuParticleContainer[ParticlesCount] = p;
+				ParticlesCount += 1;
+				//printf("vpos =(%f,%f,%f)\n", p.vPosition.x,p.vPosition.y,p.vPosition.z );
+			}
 		}
 		else{
 			//particle dies
@@ -468,13 +476,15 @@ void Solution::UpdateParticles()
 
 			ParticlesCount += 1;
 
-			gpuParticleContainer[ParticlesCount] = v;
+			if (ParticlesCount >= MAX_PARTICLES_ON_SCENE)ParticlesCount=MAX_PARTICLES_ON_SCENE;
+			gpuParticleContainer[nextParticleToUse] = v;
+			 
 			nextParticleToUse = FindUnusedParticle();
 			//printf("nextParticleToUse %i\n", nextParticleToUse);
 
 		}
 	}
-	printf("particle count %i\n", ParticlesCount);
+	printf("particle count %i ; first %i; next %i \n", ParticlesCount,firstUsedParticle,nextParticleToUse);
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
