@@ -10,9 +10,13 @@ const float Tmax=1;
 void main(void)
 {
 		float x,y;
-		x=3*Temp/(8*Tmax);
-		y=1/(2*Tmax);
-		vec2 textCoord=vec2(x,y);
-	    gl_FragColor = texture2D(partSampler,textCoord);
-	
+		if (Temp==0){
+			gl_FragColor = vec4(0,0,0,1);
+		}
+		else{
+			x=3*Temp/(8*Tmax);
+			y=1-3*Temp/(8*Tmax);
+			vec2 textCoord=vec2(x,y);
+			gl_FragColor = texture2D(partSampler,textCoord);
+		}
 }

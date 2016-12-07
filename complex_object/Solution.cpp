@@ -188,16 +188,16 @@ int Solution::initSolution()
 	Indices ind;
 
 	char *sbTextureNameSunnyDay[6] = {
-		"TropicalSunnyDayLeft2048.png",
-		"TropicalSunnyDayRight2048.png",
-		"TropicalSunnyDayUp2048.png",
-		"TropicalSunnyDayDown2048.png",
-		"TropicalSunnyDayFront2048.png",
-		"TropicalSunnyDayBack2048.png" };
+		"Daylight Box_Right.bmp",
+		"Daylight Box_Left.bmp",
+		"Daylight Box_Top.bmp",
+		"Daylight Box_Bottom.bmp",
+		"Daylight Box_Front.bmp",
+		"Daylight Box_Back.bmp" };
 
 
 	volcanoCenter = Vector3f(100, 0, 100);
-	Vector3f viewerPosition = Vector3f(140, 50, 140);
+	Vector3f viewerPosition = Vector3f(160, 50, 160);
 	Vector3f lookAtPoint = volcanoCenter;
 	Vector3f upVector = Vector3f(0, 1, 0);
 
@@ -235,8 +235,8 @@ int Solution::initSolution()
 	lavaTex.loadTextureImage("MoltenLava.png", GL_TEXTURE_2D);
 
 	//skybox initialization
-	//skybox.init("skybox.vert", "skybox.frag");
-	//skybox.loadTextureImages(sbTextureNameSunnyDay);
+	skybox.init("skybox.vert", "skybox.frag");
+	skybox.loadTextureImages(sbTextureNameSunnyDay);
 
 
 	factor = 1;
@@ -320,7 +320,7 @@ float Solution::gRandF(float min, float max){
 Vector3f Solution::randVelocity(){
 	Vector3f randVel;
 	randVel.x = gRandF(-2, 2);
-	randVel.y = gRandF(0,2);
+	randVel.y = gRandF(-2,2);
 	//randVel.y = 0;
 	randVel.z = gRandF(-2, 2);
 
@@ -372,24 +372,49 @@ int Solution::FindFirstUsedParticle(){
 }
 
 
-float Solution::updateTemp(Vector3f pos){
+float Solution::updateTemp(Vector3f pos,float temperature){
 	//equation x=z temperature=1
 	//find distance between line x=z and point
 	float distFromXeqZ = abs(pos.x - pos.z) / (sqrt(2));
+	float distBetweenXeqZAndBound;
+	float newTemp;
+	if (pos.x < pos.z && sqrt(3)*pos.x>pos.z){
+		//find distance between point and line with angle 30°
+		float dist = abs(sqrt(3)*pos.x - pos.z) / 2;
+		distBetweenXeqZAndBound = dist + distFromXeqZ;
 
-	//find equation of line perpendicular to line x=z passing through pt P (x=-z+b)
-	float B = pos.x + pos.z;
+		//compute new temp with linear interpolation
+		newTemp = 1 + (distFromXeqZ - 0)*(0 - 1) / distBetweenXeqZAndBound;
+	}
+	else if (pos.x > pos.z && pos.x<sqrt(3)*pos.z){
+		//find distance between point and line with angle 60°
+		float dist = abs(pos.x - sqrt(3)*pos.z) / 2;
+		distBetweenXeqZAndBound = dist + distFromXeqZ;
+	
+		//compute new temp with linear interpolation
+		newTemp = 1 + (distFromXeqZ - 0)*(0 - 1) / distBetweenXeqZAndBound;
+	}
+	else{
+		newTemp = 0;
+	}
+	
+	
+	
+	//printf("temperature %f \n", newTemp);
 
-	//distance between line z=0(boundary) and line x=z through point P
-	float distBetweenZ0AndXeqZ = B*sin(45*PI/180);
 
-	//compute new temp with linear interpolation
-	float newTemp = 1 + (distFromXeqZ - 0)*(0 - 1) / distBetweenZ0AndXeqZ;
+	//apply change following height.
+	if (pos.y < PARTICLE_SIZE / 1 ){
+		newTemp -= PARTICLE_SIZE / 2;
+	}
+	else if (pos.y > PARTICLE_SIZE / 1){
+		newTemp =0;
+	}
+
 	newTemp = newTemp*pow(10, 1);
 	newTemp = newTemp - floor(newTemp);
 	if (newTemp > 1)newTemp = 1;
 	if (newTemp < 0)newTemp = 0;
-	//printf("temperature %f \n", newTemp);
 	return newTemp;
 }
 
@@ -415,7 +440,7 @@ void Solution::UpdateParticles()
 	ParticlesCount = 0;
 
 
-	float delta = 0.1;
+	float delta = 0.03;
 	for (int i = firstUsedParticle; i<firstUsedParticle + nbParticle; i++){
 
 		CParticle& p = ParticlesContainer[i%MAX_PARTICLES_ON_SCENE]; // shortcut
@@ -444,7 +469,7 @@ void Solution::UpdateParticles()
 			}
 			else{
 				//update temperature depending on position 
-				p.temperature = updateTemp(p.vPosition);
+				p.temperature = updateTemp(p.vPosition,p.temperature);
 
 				// Fill the GPU buffer
 				gpuParticleContainer[ParticlesCount] = p;
@@ -514,11 +539,11 @@ void Solution::render()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	/*
+	
 	skybox.render(cam);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.getTexHandle());
-	*/
+	
 	// use the created shader
 	shader.useProgram(1);
 	// set the camera matrix

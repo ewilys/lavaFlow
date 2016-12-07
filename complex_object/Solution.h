@@ -57,9 +57,9 @@
 
 #define NUM_PARTICLE_ATTRIBUTES 4
 #define GENERATE_NEW_PARTICLE 3
-#define MAX_PARTICLES_ON_SCENE 2500
+#define MAX_PARTICLES_ON_SCENE 7000
 #define NEW_PARTICLES 5
-#define PARTICLE_SIZE 7
+#define PARTICLE_SIZE 5
 
 
 class Solution
@@ -88,7 +88,7 @@ public:
 	void UpdateParticles();
 	Vector3f ApplyBoundaries(Vector3f pos);
 	Vector3f randVelocity();
-	float updateTemp(Vector3f pos);
+	float updateTemp(Vector3f pos, float temperature);
 
 	Shader shader;
 	Shader particleShader;
